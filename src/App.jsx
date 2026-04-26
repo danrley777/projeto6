@@ -2,200 +2,7 @@ import { useEffect, useState } from 'react'
 import { BrowserRouter, Link, Route, Routes, useParams } from 'react-router-dom'
 import styled, { createGlobalStyle } from 'styled-components'
 
-const restaurants = [
-  {
-    id: 'hikaru-sushi',
-    title: 'Hikaru Sushi',
-    category: 'Japonesa',
-    rating: 4.9,
-    featured: true,
-    description:
-      'Peixes frescos, combinados exclusivos e entrega caprichada para transformar a sua noite em um verdadeiro festival oriental.',
-    heroImage:
-      'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=1200&q=80',
-    coverImage:
-      'https://images.unsplash.com/photo-1611143669185-af224c5e3252?auto=format&fit=crop&w=900&q=80',
-    accent: '#e66767',
-    products: [
-      {
-        id: 'combo-tokyo',
-        name: 'Combo Tokyo',
-        description: '20 unidades com sashimi, hossomaki e uramaki selecionados.',
-        price: 54.9,
-        image:
-          'https://images.unsplash.com/photo-1553621042-f6e147245754?auto=format&fit=crop&w=700&q=80',
-      },
-      {
-        id: 'jo-salmao',
-        name: 'Jyo de salmao',
-        description: 'Dupla de jyo com cream cheese, gergelim e molho levemente picante.',
-        price: 21.9,
-        image:
-          'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?auto=format&fit=crop&w=700&q=80',
-      },
-      {
-        id: 'temaki-philadelphia',
-        name: 'Temaki Philadelphia',
-        description: 'Salmao fresco, arroz e cebolinha com muito recheio.',
-        price: 29.9,
-        image:
-          'https://images.unsplash.com/photo-1562158070-57e8c7ed0b43?auto=format&fit=crop&w=700&q=80',
-      },
-      {
-        id: 'yakisoba-misto',
-        name: 'Yakisoba misto',
-        description: 'Legumes crocantes, massa especial e molho oriental encorpado.',
-        price: 33.9,
-        image:
-          'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?auto=format&fit=crop&w=700&q=80',
-      },
-      {
-        id: 'hot-roll',
-        name: 'Hot roll',
-        description: 'Porcao crocante de hot roll com molho tare da casa.',
-        price: 26.9,
-        image:
-          'https://images.unsplash.com/photo-1607301405390-d831c242f59b?auto=format&fit=crop&w=700&q=80',
-      },
-      {
-        id: 'harumaki',
-        name: 'Harumaki',
-        description: 'Rolinho primavera recheado com legumes e molho agridoce.',
-        price: 18.9,
-        image:
-          'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=700&q=80',
-      },
-    ],
-  },
-  {
-    id: 'la-dolce-vita',
-    title: 'La Dolce Vita Trattoria',
-    category: 'Italiana',
-    rating: 4.6,
-    featured: false,
-    description:
-      'Massas artesanais, receitas classicas e um cardapio cheio de conforto para dividir com quem voce gosta.',
-    heroImage:
-      'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1200&q=80',
-    coverImage:
-      'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&w=900&q=80',
-    accent: '#e66767',
-    products: [
-      {
-        id: 'pizza-margherita',
-        name: 'Pizza Margherita',
-        description: 'Molho de tomate, mucarela, manjericao fresco e azeite extra virgem.',
-        price: 54.9,
-        image:
-          'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=700&q=80',
-      },
-      {
-        id: 'spaghetti-alfredo',
-        name: 'Spaghetti Alfredo',
-        description: 'Massa fresca com molho cremoso de parmesao e toque de noz moscada.',
-        price: 42.9,
-        image:
-          'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&w=700&q=80',
-      },
-      {
-        id: 'lasanha-bolonhesa',
-        name: 'Lasanha a bolonhesa',
-        description: 'Camadas generosas de massa, ragu e muito queijo gratinado.',
-        price: 46.9,
-        image:
-          'https://images.unsplash.com/photo-1619895092538-128341789043?auto=format&fit=crop&w=700&q=80',
-      },
-      {
-        id: 'risoto-funghi',
-        name: 'Risoto de funghi',
-        description: 'Arroz arboreo com cogumelos, manteiga e finalizacao cremosa.',
-        price: 44.9,
-        image:
-          'https://images.unsplash.com/photo-1476124369491-e7addf5db371?auto=format&fit=crop&w=700&q=80',
-      },
-      {
-        id: 'gnocchi',
-        name: 'Nhoque ao sugo',
-        description: 'Nhoque macio com molho artesanal de tomate e parmesao.',
-        price: 39.9,
-        image:
-          'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=700&q=80',
-      },
-      {
-        id: 'tiramisu',
-        name: 'Tiramisu',
-        description: 'Sobremesa classica italiana com cafe, mascarpone e cacau.',
-        price: 19.9,
-        image:
-          'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=700&q=80',
-      },
-    ],
-  },
-  {
-    id: 'burger-house',
-    title: 'Burger House',
-    category: 'Hamburgueria',
-    rating: 4.7,
-    featured: false,
-    description:
-      'Smash burgers, batatas sequinhas e combos generosos para quem ama sabor sem complicacao.',
-    heroImage:
-      'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=80',
-    coverImage:
-      'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=80',
-    accent: '#e66767',
-    products: [
-      {
-        id: 'smash-duplo',
-        name: 'Smash duplo',
-        description: 'Dois discos de carne, cheddar, cebola caramelizada e molho especial.',
-        price: 34.9,
-        image:
-          'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=700&q=80',
-      },
-      {
-        id: 'batata-cheddar',
-        name: 'Batata cheddar e bacon',
-        description: 'Batatas crocantes com cheddar cremoso e bacon tostado.',
-        price: 24.9,
-        image:
-          'https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?auto=format&fit=crop&w=700&q=80',
-      },
-    ],
-  },
-  {
-    id: 'casa-brunch',
-    title: 'Casa Brunch',
-    category: 'Cafeteria',
-    rating: 4.8,
-    featured: true,
-    description:
-      'Receitas leves, cafes especiais e pratos pensados para um comeco de dia delicioso.',
-    heroImage:
-      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80',
-    coverImage:
-      'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=900&q=80',
-    accent: '#e66767',
-    products: [
-      {
-        id: 'avocado-toast',
-        name: 'Avocado toast',
-        description: 'Pao rustico, avocado temperado e ovo poche.',
-        price: 29.9,
-        image:
-          'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=700&q=80',
-      },
-      {
-        id: 'iced-latte',
-        name: 'Iced latte',
-        description: 'Cafe gelado com leite cremoso e toque de baunilha.',
-        price: 14.9,
-        image:
-          'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=700&q=80',
-      },
-    ],
-  },
-]
+const API_URL = 'https://api-ebac.vercel.app/api/efood/restaurantes'
 
 const GlobalStyle = createGlobalStyle`
   :root {
@@ -225,7 +32,7 @@ const GlobalStyle = createGlobalStyle`
     color: #4b1d1d;
   }
 
-  body.cart-open {
+  body.overlay-open {
     overflow: hidden;
   }
 
@@ -385,7 +192,9 @@ const RestaurantCard = styled.article`
 
 const CardImage = styled.div`
   height: 218px;
-  background-image: linear-gradient(rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.18)), url(${(props) => props.$image});
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.18)),
+    url(${(props) => props.$image});
   background-size: cover;
   background-position: center;
   position: relative;
@@ -436,7 +245,7 @@ const Rating = styled.span`
   font-weight: 700;
 
   &::after {
-    content: '★';
+    content: '\\2605';
     color: #ffb930;
   }
 `
@@ -588,10 +397,15 @@ const ProductDescription = styled.p`
   flex: 1;
 `
 
+const ProductActions = styled.div`
+  display: grid;
+  gap: 8px;
+`
+
 const ProductButton = styled.button`
   border: 0;
-  background: #ffebd9;
-  color: #e66767;
+  background: ${(props) => (props.$secondary ? '#c75b5b' : '#ffebd9')};
+  color: ${(props) => (props.$secondary ? '#fff4eb' : '#e66767')};
   padding: 6px 8px;
   font-size: 0.85rem;
   font-weight: 700;
@@ -667,7 +481,7 @@ const DrawerOverlay = styled.div`
   inset: 0;
   background: rgba(0, 0, 0, 0.72);
   display: ${(props) => (props.$open ? 'block' : 'none')};
-  z-index: 20;
+  z-index: ${(props) => props.$zIndex || 20};
 `
 
 const DrawerPanel = styled.aside`
@@ -719,11 +533,108 @@ const NotFoundWrap = styled.main`
   text-align: center;
 `
 
-const formatPrice = (value) =>
-  value.toLocaleString('pt-BR', {
+const FeedbackState = styled.main`
+  max-width: 1180px;
+  min-height: 60vh;
+  margin: 0 auto;
+  padding: 64px 16px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: #e66767;
+`
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  display: ${(props) => (props.$open ? 'grid' : 'none')};
+  place-items: center;
+  padding: 16px;
+  z-index: 40;
+`
+
+const ModalCard = styled.article`
+  width: min(100%, 1024px);
+  background: #e66767;
+  color: #ffebd9;
+  padding: 32px;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 24px;
+  position: relative;
+
+  @media (max-width: 760px) {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+`
+
+const ModalImage = styled.img`
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  display: block;
+`
+
+const ModalClose = styled.button`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: transparent;
+  color: #ffebd9;
+  cursor: pointer;
+  font-size: 20px;
+`
+
+const ModalTitle = styled.h2`
+  margin: 0 0 12px;
+  color: #ffebd9;
+  font-size: 1.2rem;
+`
+
+const ModalText = styled.p`
+  margin: 0 0 16px;
+  line-height: 1.6;
+  font-size: 0.92rem;
+`
+
+const ModalPortion = styled.p`
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  font-weight: 700;
+`
+
+function formatPrice(value) {
+  return value.toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL',
   })
+}
+
+function normalizeRestaurant(item) {
+  return {
+    id: String(item.id),
+    title: item.titulo,
+    featured: item.destacado,
+    category: item.tipo,
+    rating: item.avaliacao,
+    description: item.descricao,
+    coverImage: item.capa,
+    heroImage: item.capa,
+    products: item.cardapio.map((product) => ({
+      id: String(product.id),
+      name: product.nome,
+      description: product.descricao,
+      price: product.preco,
+      image: product.foto,
+      portion: product.porcao,
+    })),
+  }
+}
 
 function Logo() {
   return (
@@ -734,14 +645,54 @@ function Logo() {
 }
 
 function App() {
+  const [restaurants, setRestaurants] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
   const [cartItems, setCartItems] = useState([])
   const [isCartOpen, setIsCartOpen] = useState(false)
 
   useEffect(() => {
-    document.body.classList.toggle('cart-open', isCartOpen)
+    let isMounted = true
+
+    async function loadRestaurants() {
+      try {
+        setIsLoading(true)
+        setError('')
+
+        const response = await fetch(API_URL)
+
+        if (!response.ok) {
+          throw new Error('Nao foi possivel carregar os restaurantes.')
+        }
+
+        const data = await response.json()
+
+        if (isMounted) {
+          setRestaurants(data.map(normalizeRestaurant))
+        }
+      } catch (fetchError) {
+        if (isMounted) {
+          setError('Nao foi possivel carregar os dados da API do eFood.')
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadRestaurants()
 
     return () => {
-      document.body.classList.remove('cart-open')
+      isMounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    document.body.classList.toggle('overlay-open', isCartOpen)
+
+    return () => {
+      document.body.classList.remove('overlay-open')
     }
   }, [isCartOpen])
 
@@ -789,13 +740,22 @@ function App() {
           <Route
             path="/"
             element={
-              <HomePage totalItems={totalItems} onOpenCart={() => setIsCartOpen(true)} />
+              <HomePage
+                restaurants={restaurants}
+                isLoading={isLoading}
+                error={error}
+                totalItems={totalItems}
+                onOpenCart={() => setIsCartOpen(true)}
+              />
             }
           />
           <Route
             path="/restaurantes/:restaurantId"
             element={
               <RestaurantPage
+                restaurants={restaurants}
+                isLoading={isLoading}
+                error={error}
                 totalItems={totalItems}
                 totalPrice={totalPrice}
                 cartItems={cartItems}
@@ -814,7 +774,7 @@ function App() {
   )
 }
 
-function HomePage({ totalItems, onOpenCart }) {
+function HomePage({ restaurants, isLoading, error, totalItems, onOpenCart }) {
   return (
     <>
       <Header totalItems={totalItems} onOpenCart={onOpenCart} />
@@ -826,34 +786,51 @@ function HomePage({ totalItems, onOpenCart }) {
       </HeroSection>
 
       <ContentWrap>
-        <CardsGrid>
-          {restaurants.map((restaurant) => (
-            <RestaurantCard key={restaurant.id}>
-              <CardImage $image={restaurant.heroImage}>
-                <TagList>
-                  {restaurant.featured && <Tag>Destaque da semana</Tag>}
-                  <Tag>{restaurant.category}</Tag>
-                </TagList>
-              </CardImage>
+        {isLoading && (
+          <FeedbackBlock>Carregando restaurantes da API do eFood...</FeedbackBlock>
+        )}
 
-              <CardBody>
-                <CardHeader>
-                  <CardTitle>{restaurant.title}</CardTitle>
-                  <Rating>{restaurant.rating.toFixed(1)}</Rating>
-                </CardHeader>
+        {!isLoading && error && <FeedbackBlock>{error}</FeedbackBlock>}
 
-                <CardDescription>{restaurant.description}</CardDescription>
-                <ActionLink to={`/restaurantes/${restaurant.id}`}>Saiba mais</ActionLink>
-              </CardBody>
-            </RestaurantCard>
-          ))}
-        </CardsGrid>
+        {!isLoading && !error && (
+          <CardsGrid>
+            {restaurants.map((restaurant) => (
+              <RestaurantCard key={restaurant.id}>
+                <CardImage $image={restaurant.heroImage}>
+                  <TagList>
+                    {restaurant.featured && <Tag>Destaque da semana</Tag>}
+                    <Tag>{restaurant.category}</Tag>
+                  </TagList>
+                </CardImage>
+
+                <CardBody>
+                  <CardHeader>
+                    <CardTitle>{restaurant.title}</CardTitle>
+                    <Rating>{restaurant.rating.toFixed(1)}</Rating>
+                  </CardHeader>
+
+                  <CardDescription>{restaurant.description}</CardDescription>
+                  <ActionLink to={`/restaurantes/${restaurant.id}`}>Saiba mais</ActionLink>
+                </CardBody>
+              </RestaurantCard>
+            ))}
+          </CardsGrid>
+        )}
       </ContentWrap>
 
       <AppFooter />
     </>
   )
 }
+
+const FeedbackBlock = styled.div`
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: #e66767;
+  font-weight: 700;
+`
 
 function Header({ totalItems, onOpenCart, restaurantName }) {
   return (
@@ -863,7 +840,10 @@ function Header({ totalItems, onOpenCart, restaurantName }) {
           {restaurantName ? (
             <HeaderLink to="/">Restaurantes</HeaderLink>
           ) : (
-            <HeaderButton type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            <HeaderButton
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
               Home
             </HeaderButton>
           )}
@@ -882,6 +862,9 @@ function Header({ totalItems, onOpenCart, restaurantName }) {
 }
 
 function RestaurantPage({
+  restaurants,
+  isLoading,
+  error,
   totalItems,
   totalPrice,
   cartItems,
@@ -893,6 +876,33 @@ function RestaurantPage({
 }) {
   const { restaurantId } = useParams()
   const restaurant = restaurants.find((item) => item.id === restaurantId)
+  const [selectedProduct, setSelectedProduct] = useState(null)
+
+  useEffect(() => {
+    document.body.classList.toggle('overlay-open', isCartOpen || Boolean(selectedProduct))
+
+    return () => {
+      document.body.classList.remove('overlay-open')
+    }
+  }, [isCartOpen, selectedProduct])
+
+  if (isLoading) {
+    return (
+      <>
+        <Header totalItems={totalItems} onOpenCart={onOpenCart} restaurantName="Restaurantes" />
+        <FeedbackState>Carregando cardapio da API do eFood...</FeedbackState>
+      </>
+    )
+  }
+
+  if (error) {
+    return (
+      <>
+        <Header totalItems={totalItems} onOpenCart={onOpenCart} restaurantName="Restaurantes" />
+        <FeedbackState>{error}</FeedbackState>
+      </>
+    )
+  }
 
   if (!restaurant) {
     return <NotFoundPage />
@@ -920,9 +930,18 @@ function RestaurantPage({
               <ProductImage src={product.image} alt={product.name} />
               <ProductTitle>{product.name}</ProductTitle>
               <ProductDescription>{product.description}</ProductDescription>
-              <ProductButton type="button" onClick={() => onAddToCart(restaurant, product)}>
-                Adicionar ao carrinho
-              </ProductButton>
+              <ProductActions>
+                <ProductButton
+                  type="button"
+                  $secondary
+                  onClick={() => setSelectedProduct(product)}
+                >
+                  Mais detalhes
+                </ProductButton>
+                <ProductButton type="button" onClick={() => onAddToCart(restaurant, product)}>
+                  Adicionar ao carrinho
+                </ProductButton>
+              </ProductActions>
             </ProductCard>
           ))}
         </ProductGrid>
@@ -935,6 +954,15 @@ function RestaurantPage({
           />
         </DesktopCart>
       </ProfileLayout>
+
+      <ProductModal
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+        onAddToCart={() => {
+          onAddToCart(restaurant, selectedProduct)
+          setSelectedProduct(null)
+        }}
+      />
 
       <DrawerOverlay $open={isCartOpen} onClick={onCloseCart} />
       <DrawerPanel $open={isCartOpen}>
@@ -954,6 +982,31 @@ function RestaurantPage({
 
       <AppFooter />
     </>
+  )
+}
+
+function ProductModal({ product, onClose, onAddToCart }) {
+  if (!product) {
+    return null
+  }
+
+  return (
+    <ModalOverlay $open={Boolean(product)} onClick={onClose}>
+      <ModalCard onClick={(event) => event.stopPropagation()}>
+        <ModalClose type="button" onClick={onClose}>
+          ×
+        </ModalClose>
+        <ModalImage src={product.image} alt={product.name} />
+        <div>
+          <ModalTitle>{product.name}</ModalTitle>
+          <ModalText>{product.description}</ModalText>
+          <ModalPortion>Serve: {product.portion}</ModalPortion>
+          <ProductButton type="button" onClick={onAddToCart}>
+            Adicionar ao carrinho - {formatPrice(product.price)}
+          </ProductButton>
+        </div>
+      </ModalCard>
+    </ModalOverlay>
   )
 }
 
