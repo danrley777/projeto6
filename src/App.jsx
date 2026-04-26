@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import styled, { createGlobalStyle } from 'styled-components'
 import {
   addItem,
+  clearCart,
   closeCart,
   openCart,
   removeSingleItem,
@@ -452,6 +453,20 @@ const CartItemCard = styled.div`
   padding: 10px;
 `
 
+const CartItemThumbRow = styled.div`
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+`
+
+const CartThumb = styled.img`
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  display: block;
+`
+
 const CartItemHeader = styled.div`
   display: flex;
   justify-content: space-between;
@@ -464,6 +479,16 @@ const CartItemInfo = styled.p`
   margin: 0;
   font-size: 0.82rem;
   line-height: 1.45;
+`
+
+const TrashButton = styled.button`
+  border: 0;
+  background: transparent;
+  color: #e66767;
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
 `
 
 const CartFooter = styled.div`
@@ -510,6 +535,12 @@ const DrawerPanel = styled.aside`
   overflow-y: auto;
 `
 
+const DrawerSectionTitle = styled.h4`
+  margin: 0 0 16px;
+  color: #ffebd9;
+  font-size: 1rem;
+`
+
 const DrawerHeader = styled.div`
   display: flex;
   align-items: center;
@@ -534,6 +565,49 @@ const QuantityButton = styled.button`
   cursor: pointer;
   padding: 0;
   font-weight: 700;
+`
+
+const CheckoutForm = styled.form`
+  display: grid;
+  gap: 8px;
+`
+
+const FieldGroup = styled.div`
+  display: grid;
+  gap: 4px;
+`
+
+const FieldRow = styled.div`
+  display: grid;
+  grid-template-columns: ${(props) => props.$columns || '1fr 1fr'};
+  gap: 8px;
+`
+
+const FieldLabel = styled.label`
+  color: #ffebd9;
+  font-size: 0.76rem;
+  font-weight: 700;
+`
+
+const FieldInput = styled.input`
+  width: 100%;
+  border: 0;
+  padding: 8px;
+  background: #ffebd9;
+  color: #4b1d1d;
+  font-size: 0.85rem;
+`
+
+const CheckoutButton = styled.button`
+  border: 0;
+  background: ${(props) => (props.$secondary ? '#f8d8c3' : '#ffebd9')};
+  color: #e66767;
+  padding: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: ${(props) => (props.$spaced ? '16px' : '0')};
+  opacity: ${(props) => (props.disabled ? 0.7 : 1)};
 `
 
 const NotFoundWrap = styled.main`
@@ -619,6 +693,20 @@ const ModalPortion = styled.p`
   font-weight: 700;
 `
 
+const ConfirmationText = styled.p`
+  margin: 0 0 16px;
+  color: #ffebd9;
+  font-size: 0.8rem;
+  line-height: 1.6;
+`
+
+const ErrorMessage = styled.p`
+  margin: 8px 0 0;
+  color: #fff2ea;
+  font-size: 0.76rem;
+  line-height: 1.5;
+`
+
 function formatPrice(value) {
   return value.toLocaleString('pt-BR', {
     style: 'currency',
@@ -645,6 +733,23 @@ function normalizeRestaurant(item) {
       portion: product.porcao,
     })),
   }
+}
+
+const initialDeliveryForm = {
+  receiver: '',
+  addressDescription: '',
+  city: '',
+  zipCode: '',
+  number: '',
+  complement: '',
+}
+
+const initialPaymentForm = {
+  cardName: '',
+  cardNumber: '',
+  code: '',
+  month: '',
+  year: '',
 }
 
 function Logo() {
@@ -856,6 +961,13 @@ function RestaurantPage({
   const { restaurantId } = useParams()
   const restaurant = restaurants.find((item) => item.id === restaurantId)
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [checkoutStep, setCheckoutStep] = useState('cart')
+  const [deliveryForm, setDeliveryForm] = useState(initialDeliveryForm)
+  const [paymentForm, setPaymentForm] = useState(initialPaymentForm)
+  const [orderId, setOrderId] = useState('')
+  const [checkoutError, setCheckoutError] = useState('')
+  const [isSubmittingOrder, setIsSubmittingOrder] = useState(false)
+  const dispatch = useDispatch()
 
   useEffect(() => {
     document.body.classList.toggle('overlay-open', isCartOpen || Boolean(selectedProduct))
@@ -864,6 +976,14 @@ function RestaurantPage({
       document.body.classList.remove('overlay-open')
     }
   }, [isCartOpen, selectedProduct])
+
+  useEffect(() => {
+    if (!isCartOpen) {
+      setCheckoutStep('cart')
+      setCheckoutError('')
+      setIsSubmittingOrder(false)
+    }
+  }, [isCartOpen])
 
   if (isLoading) {
     return (
@@ -885,6 +1005,95 @@ function RestaurantPage({
 
   if (!restaurant) {
     return <NotFoundPage />
+  }
+
+  const handleDeliveryChange = (event) => {
+    const { name, value } = event.target
+    setDeliveryForm((current) => ({
+      ...current,
+      [name]: value,
+    }))
+  }
+
+  const handlePaymentChange = (event) => {
+    const { name, value } = event.target
+    setPaymentForm((current) => ({
+      ...current,
+      [name]: value,
+    }))
+  }
+
+  const handleDeliverySubmit = (event) => {
+    event.preventDefault()
+    setCheckoutError('')
+    setCheckoutStep('payment')
+  }
+
+  const handlePaymentSubmit = async (event) => {
+    event.preventDefault()
+    setCheckoutError('')
+    setIsSubmittingOrder(true)
+
+    const payload = {
+      products: cartItems.flatMap((item) =>
+        Array.from({ length: item.quantity }, () => ({
+          id: Number(item.id),
+          price: item.price,
+        })),
+      ),
+      delivery: {
+        receiver: deliveryForm.receiver,
+        address: {
+          description: deliveryForm.addressDescription,
+          city: deliveryForm.city,
+          zipCode: deliveryForm.zipCode,
+          number: Number(deliveryForm.number),
+          complement: deliveryForm.complement,
+        },
+      },
+      payment: {
+        card: {
+          name: paymentForm.cardName,
+          number: paymentForm.cardNumber,
+          code: Number(paymentForm.code),
+          expires: {
+            month: Number(paymentForm.month),
+            year: Number(paymentForm.year),
+          },
+        },
+      },
+    }
+
+    try {
+      const response = await fetch('https://api-ebac.vercel.app/api/efood/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) {
+        throw new Error('Falha ao concluir pedido')
+      }
+
+      const data = await response.json()
+      setOrderId(data.orderId)
+      setCheckoutStep('confirmation')
+    } catch (submitError) {
+      setCheckoutError('Nao foi possivel finalizar o pagamento. Tente novamente.')
+    } finally {
+      setIsSubmittingOrder(false)
+    }
+  }
+
+  const handleFinishOrder = () => {
+    dispatch(clearCart())
+    setDeliveryForm(initialDeliveryForm)
+    setPaymentForm(initialPaymentForm)
+    setOrderId('')
+    setCheckoutStep('cart')
+    setCheckoutError('')
   }
 
   return (
@@ -945,18 +1154,137 @@ function RestaurantPage({
 
       <DrawerOverlay $open={isCartOpen} onClick={onCloseCart} />
       <DrawerPanel $open={isCartOpen}>
-        <DrawerHeader>
-          <CartTitle>Carrinho</CartTitle>
-          <DrawerClose type="button" onClick={onCloseCart}>
-            X
-          </DrawerClose>
-        </DrawerHeader>
+        {checkoutStep === 'cart' && (
+          <>
+            <DrawerHeader>
+              <CartTitle>Carrinho</CartTitle>
+              <DrawerClose type="button" onClick={onCloseCart}>
+                X
+              </DrawerClose>
+            </DrawerHeader>
 
-        <CartContents
-          cartItems={cartItems}
-          totalPrice={totalPrice}
-          onDecreaseItem={onDecreaseItem}
-        />
+            <CartContents
+              cartItems={cartItems}
+              totalPrice={totalPrice}
+              onDecreaseItem={onDecreaseItem}
+              onCheckout={() => setCheckoutStep('delivery')}
+            />
+          </>
+        )}
+
+        {checkoutStep === 'delivery' && (
+          <>
+            <DrawerSectionTitle>Entrega</DrawerSectionTitle>
+            <CheckoutForm onSubmit={handleDeliverySubmit}>
+              <FieldGroup>
+                <FieldLabel htmlFor="receiver">Quem ira receber</FieldLabel>
+                <FieldInput id="receiver" name="receiver" value={deliveryForm.receiver} onChange={handleDeliveryChange} required />
+              </FieldGroup>
+
+              <FieldGroup>
+                <FieldLabel htmlFor="addressDescription">Endereco</FieldLabel>
+                <FieldInput id="addressDescription" name="addressDescription" value={deliveryForm.addressDescription} onChange={handleDeliveryChange} required />
+              </FieldGroup>
+
+              <FieldGroup>
+                <FieldLabel htmlFor="city">Cidade</FieldLabel>
+                <FieldInput id="city" name="city" value={deliveryForm.city} onChange={handleDeliveryChange} required />
+              </FieldGroup>
+
+              <FieldRow>
+                <FieldGroup>
+                  <FieldLabel htmlFor="zipCode">CEP</FieldLabel>
+                  <FieldInput id="zipCode" name="zipCode" value={deliveryForm.zipCode} onChange={handleDeliveryChange} required />
+                </FieldGroup>
+
+                <FieldGroup>
+                  <FieldLabel htmlFor="number">Numero</FieldLabel>
+                  <FieldInput id="number" name="number" type="number" value={deliveryForm.number} onChange={handleDeliveryChange} required />
+                </FieldGroup>
+              </FieldRow>
+
+              <FieldGroup>
+                <FieldLabel htmlFor="complement">Complemento (opcional)</FieldLabel>
+                <FieldInput id="complement" name="complement" value={deliveryForm.complement} onChange={handleDeliveryChange} />
+              </FieldGroup>
+
+              <CheckoutButton type="submit" $spaced>
+                Continuar com o pagamento
+              </CheckoutButton>
+              <CheckoutButton type="button" $secondary onClick={() => setCheckoutStep('cart')}>
+                Voltar para o carrinho
+              </CheckoutButton>
+            </CheckoutForm>
+          </>
+        )}
+
+        {checkoutStep === 'payment' && (
+          <>
+            <DrawerSectionTitle>
+              Pagamento - Valor a pagar {formatPrice(totalPrice)}
+            </DrawerSectionTitle>
+            <CheckoutForm onSubmit={handlePaymentSubmit}>
+              <FieldGroup>
+                <FieldLabel htmlFor="cardName">Nome no cartao</FieldLabel>
+                <FieldInput id="cardName" name="cardName" value={paymentForm.cardName} onChange={handlePaymentChange} required />
+              </FieldGroup>
+
+              <FieldRow $columns="minmax(0, 1fr) 80px">
+                <FieldGroup>
+                  <FieldLabel htmlFor="cardNumber">Numero do cartao</FieldLabel>
+                  <FieldInput id="cardNumber" name="cardNumber" value={paymentForm.cardNumber} onChange={handlePaymentChange} required />
+                </FieldGroup>
+
+                <FieldGroup>
+                  <FieldLabel htmlFor="code">CVV</FieldLabel>
+                  <FieldInput id="code" name="code" value={paymentForm.code} onChange={handlePaymentChange} required />
+                </FieldGroup>
+              </FieldRow>
+
+              <FieldRow>
+                <FieldGroup>
+                  <FieldLabel htmlFor="month">Mes de vencimento</FieldLabel>
+                  <FieldInput id="month" name="month" value={paymentForm.month} onChange={handlePaymentChange} required />
+                </FieldGroup>
+
+                <FieldGroup>
+                  <FieldLabel htmlFor="year">Ano de vencimento</FieldLabel>
+                  <FieldInput id="year" name="year" value={paymentForm.year} onChange={handlePaymentChange} required />
+                </FieldGroup>
+              </FieldRow>
+
+              {checkoutError && <ErrorMessage>{checkoutError}</ErrorMessage>}
+
+              <CheckoutButton type="submit" $spaced disabled={isSubmittingOrder}>
+                {isSubmittingOrder ? 'Finalizando...' : 'Finalizar pagamento'}
+              </CheckoutButton>
+              <CheckoutButton type="button" $secondary onClick={() => setCheckoutStep('delivery')}>
+                Voltar para a edicao de endereco
+              </CheckoutButton>
+            </CheckoutForm>
+          </>
+        )}
+
+        {checkoutStep === 'confirmation' && (
+          <>
+            <DrawerSectionTitle>Pedido realizado - {orderId}</DrawerSectionTitle>
+            <ConfirmationText>
+              Estamos felizes em informar que seu pedido ja esta em processo de preparacao e, em breve, sera entregue no endereco fornecido.
+            </ConfirmationText>
+            <ConfirmationText>
+              Gostariamos de ressaltar que nossos entregadores nao realizam alteracoes no endereco informado.
+            </ConfirmationText>
+            <ConfirmationText>
+              Lembre-se da importancia de higienizar as maos apos o recebimento do pedido, garantindo assim mais seguranca para a refeicao.
+            </ConfirmationText>
+            <ConfirmationText>
+              Esperamos que desfrute de uma deliciosa experiencia gastronomica. Bom apetite!
+            </ConfirmationText>
+            <CheckoutButton type="button" onClick={handleFinishOrder}>
+              Concluir
+            </CheckoutButton>
+          </>
+        )}
       </DrawerPanel>
 
       <AppFooter />
@@ -973,7 +1301,7 @@ function ProductModal({ product, onClose, onAddToCart }) {
     <ModalOverlay $open={Boolean(product)} onClick={onClose}>
       <ModalCard onClick={(event) => event.stopPropagation()}>
         <ModalClose type="button" onClick={onClose}>
-          ×
+          X
         </ModalClose>
         <ModalImage src={product.image} alt={product.name} />
         <div>
@@ -989,7 +1317,7 @@ function ProductModal({ product, onClose, onAddToCart }) {
   )
 }
 
-function CartContents({ cartItems, totalPrice, onDecreaseItem }) {
+function CartContents({ cartItems, totalPrice, onDecreaseItem, onCheckout }) {
   if (!cartItems.length) {
     return (
       <EmptyCart>
@@ -1003,20 +1331,18 @@ function CartContents({ cartItems, totalPrice, onDecreaseItem }) {
       <CartList>
         {cartItems.map((item) => (
           <CartItemCard key={item.id}>
-            <CartItemHeader>
-              <span>{item.name}</span>
-              <span>{formatPrice(item.price)}</span>
-            </CartItemHeader>
-
-            <CartItemInfo>
-              {item.restaurantName}
-              <br />
-              Quantidade: {item.quantity}
-            </CartItemInfo>
-
-            <QuantityButton type="button" onClick={() => onDecreaseItem(item.id)}>
-              remover um item
-            </QuantityButton>
+            <CartItemThumbRow>
+              <CartThumb src={item.image} alt={item.name} />
+              <div>
+                <CartItemHeader>
+                  <span>{item.name}</span>
+                </CartItemHeader>
+                <CartItemInfo>{formatPrice(item.price * item.quantity)}</CartItemInfo>
+              </div>
+              <TrashButton type="button" onClick={() => onDecreaseItem(item.id)}>
+                X
+              </TrashButton>
+            </CartItemThumbRow>
           </CartItemCard>
         ))}
       </CartList>
@@ -1027,7 +1353,9 @@ function CartContents({ cartItems, totalPrice, onDecreaseItem }) {
           <span>{formatPrice(totalPrice)}</span>
         </CartLine>
 
-        <ProductButton type="button">Continuar com a entrega</ProductButton>
+        <ProductButton type="button" onClick={onCheckout}>
+          Continuar com a entrega
+        </ProductButton>
       </CartFooter>
     </>
   )
