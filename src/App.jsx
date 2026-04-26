@@ -1,6 +1,17 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Link, Route, Routes, useParams } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import styled, { createGlobalStyle } from 'styled-components'
+import {
+  addItem,
+  closeCart,
+  openCart,
+  removeSingleItem,
+  selectCartIsOpen,
+  selectCartItems,
+  selectCartItemsCount,
+  selectCartTotal,
+} from './store/cartSlice'
 
 const API_URL = 'https://api-ebac.vercel.app/api/efood/restaurantes'
 
@@ -648,8 +659,11 @@ function App() {
   const [restaurants, setRestaurants] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [cartItems, setCartItems] = useState([])
-  const [isCartOpen, setIsCartOpen] = useState(false)
+  const dispatch = useDispatch()
+  const cartItems = useSelector(selectCartItems)
+  const isCartOpen = useSelector(selectCartIsOpen)
+  const totalItems = useSelector(selectCartItemsCount)
+  const totalPrice = useSelector(selectCartTotal)
 
   useEffect(() => {
     let isMounted = true
@@ -688,47 +702,12 @@ function App() {
     }
   }, [])
 
-  useEffect(() => {
-    document.body.classList.toggle('overlay-open', isCartOpen)
-
-    return () => {
-      document.body.classList.remove('overlay-open')
-    }
-  }, [isCartOpen])
-
-  const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0)
-  const totalPrice = cartItems.reduce((acc, item) => acc + item.quantity * item.price, 0)
-
-  const addToCart = (restaurant, product) => {
-    setCartItems((current) => {
-      const existingItem = current.find((item) => item.id === product.id)
-
-      if (existingItem) {
-        return current.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item,
-        )
-      }
-
-      return [
-        ...current,
-        {
-          ...product,
-          restaurantName: restaurant.title,
-          quantity: 1,
-        },
-      ]
-    })
-
-    setIsCartOpen(true)
-  }
-
-  const decreaseItem = (productId) => {
-    setCartItems((current) =>
-      current
-        .map((item) =>
-          item.id === productId ? { ...item, quantity: item.quantity - 1 } : item,
-        )
-        .filter((item) => item.quantity > 0),
+  const handleAddToCart = (restaurant, product) => {
+    dispatch(
+      addItem({
+        ...product,
+        restaurantName: restaurant.title,
+      }),
     )
   }
 
@@ -745,7 +724,7 @@ function App() {
                 isLoading={isLoading}
                 error={error}
                 totalItems={totalItems}
-                onOpenCart={() => setIsCartOpen(true)}
+                onOpenCart={() => dispatch(openCart())}
               />
             }
           />
@@ -760,10 +739,10 @@ function App() {
                 totalPrice={totalPrice}
                 cartItems={cartItems}
                 isCartOpen={isCartOpen}
-                onOpenCart={() => setIsCartOpen(true)}
-                onCloseCart={() => setIsCartOpen(false)}
-                onAddToCart={addToCart}
-                onDecreaseItem={decreaseItem}
+                onOpenCart={() => dispatch(openCart())}
+                onCloseCart={() => dispatch(closeCart())}
+                onAddToCart={handleAddToCart}
+                onDecreaseItem={(productId) => dispatch(removeSingleItem(productId))}
               />
             }
           />
