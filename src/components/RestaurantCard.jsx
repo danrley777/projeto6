@@ -20,8 +20,6 @@ const Tags = styled.div`
   top: 16px;
   right: 16px;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
   gap: 8px;
 `
 

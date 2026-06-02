@@ -40,13 +40,13 @@ const Button = styled.button`
   font-weight: 900;
 `
 
-function ProductCard({ product, onSelect }) {
+function ProductCard({ product, onAddToCart }) {
   return (
     <Card>
       <Image src={product.image} alt={product.name} />
       <Title>{product.name}</Title>
       <Description>{product.description}</Description>
-      <Button type="button" onClick={() => onSelect(product)}>
+      <Button type="button" onClick={onAddToCart}>
         Adicionar ao carrinho
       </Button>
     </Card>

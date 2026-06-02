@@ -1,21 +1,9 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import { useDispatch, useSelector } from 'react-redux'
-import {
-  addItem,
-  closeCart,
-  openCart,
-  removeSingleItem,
-  selectCartIsOpen,
-  selectCartItems,
-  selectCartItemsCount,
-  selectCartTotal,
-} from './store/cartSlice'
 import GlobalStyle from './styles/GlobalStyle'
 import { normalizeRestaurant } from './utils/restaurants'
 import HomePage from './pages/HomePage'
 import RestaurantPage from './pages/RestaurantPage'
-import NotFoundPage from './pages/NotFoundPage'
 
 const API_URL = 'https://api-ebac.vercel.app/api/efood/restaurantes'
 
@@ -23,11 +11,8 @@ function App() {
   const [restaurants, setRestaurants] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const dispatch = useDispatch()
-  const cartItems = useSelector(selectCartItems)
-  const isCartOpen = useSelector(selectCartIsOpen)
-  const totalItems = useSelector(selectCartItemsCount)
-  const totalPrice = useSelector(selectCartTotal)
+  const [cartItems, setCartItems] = useState([])
+  const [isCartOpen, setIsCartOpen] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -66,13 +51,50 @@ function App() {
     }
   }, [])
 
+  const cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0)
+  const cartTotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
+
   const handleAddToCart = (restaurant, product) => {
-    dispatch(
-      addItem({
-        ...product,
-        restaurantName: restaurant.title,
+    setCartItems((currentItems) => {
+      const existingItem = currentItems.find((item) => item.id === product.id)
+
+      if (existingItem) {
+        return currentItems.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item,
+        )
+      }
+
+      return [
+        ...currentItems,
+        {
+          ...product,
+          restaurantName: restaurant.title,
+          quantity: 1,
+        },
+      ]
+    })
+    setIsCartOpen(true)
+  }
+
+  const handleRemoveSingleItem = (productId) => {
+    setCartItems((currentItems) =>
+      currentItems.flatMap((item) => {
+        if (item.id !== productId) {
+          return [item]
+        }
+
+        if (item.quantity === 1) {
+          return []
+        }
+
+        return [{ ...item, quantity: item.quantity - 1 }]
       }),
     )
+  }
+
+  const handleClearCart = () => {
+    setCartItems([])
+    setIsCartOpen(false)
   }
 
   return (
@@ -81,7 +103,15 @@ function App() {
       <Routes>
         <Route
           path="/"
-          element={<HomePage restaurants={restaurants} isLoading={isLoading} error={error} />}
+          element={
+            <HomePage
+              restaurants={restaurants}
+              isLoading={isLoading}
+              error={error}
+              cartItemsCount={cartItemsCount}
+              onOpenCart={() => setIsCartOpen(true)}
+            />
+          }
         />
         <Route
           path="/restaurantes/:restaurantId"
@@ -90,18 +120,18 @@ function App() {
               restaurants={restaurants}
               isLoading={isLoading}
               error={error}
-              totalItems={totalItems}
-              totalPrice={totalPrice}
               cartItems={cartItems}
+              cartItemsCount={cartItemsCount}
+              cartTotal={cartTotal}
               isCartOpen={isCartOpen}
-              onOpenCart={() => dispatch(openCart())}
-              onCloseCart={() => dispatch(closeCart())}
+              onOpenCart={() => setIsCartOpen(true)}
+              onCloseCart={() => setIsCartOpen(false)}
               onAddToCart={handleAddToCart}
-              onDecreaseItem={(productId) => dispatch(removeSingleItem(productId))}
+              onRemoveSingleItem={handleRemoveSingleItem}
+              onClearCart={handleClearCart}
             />
           }
         />
-        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   )

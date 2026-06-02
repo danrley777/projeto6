@@ -38,30 +38,36 @@ const HeaderLink = styled(Link)`
   font-weight: 900;
 `
 
+const Spacer = styled.div``
+
 const CartButton = styled.button`
   border: 0;
   background: transparent;
   color: #e66767;
   cursor: pointer;
+  padding: 0;
   font-size: 14px;
   font-weight: 900;
-  justify-self: end;
-  padding: 0;
+  text-align: right;
 
   @media (max-width: 640px) {
-    justify-self: center;
+    text-align: center;
   }
 `
 
-function Header({ totalItems, onOpenCart }) {
+function Header({ cartItemsCount = 0, onOpenCart }) {
   return (
     <HeaderWrap>
       <HeaderContent>
         <HeaderLink to="/">Restaurantes</HeaderLink>
         <Logo />
-        <CartButton type="button" onClick={onOpenCart}>
-          {totalItems} produto(s) no carrinho
-        </CartButton>
+        {onOpenCart ? (
+          <CartButton type="button" onClick={onOpenCart}>
+            {cartItemsCount} produto(s) no carrinho
+          </CartButton>
+        ) : (
+          <Spacer />
+        )}
       </HeaderContent>
     </HeaderWrap>
   )

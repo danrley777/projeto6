@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 import Footer from '../components/Footer'
-import FeedbackBlock from '../components/FeedbackBlock'
+import Header from '../components/Header'
 import Logo from '../components/Logo'
 import RestaurantCard from '../components/RestaurantCard'
 
@@ -55,9 +55,20 @@ const Grid = styled.section`
   }
 `
 
-function HomePage({ restaurants, isLoading, error }) {
+const Message = styled.p`
+  margin: 0;
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+  color: #e66767;
+  font-size: 18px;
+  font-weight: 900;
+`
+
+function HomePage({ restaurants, isLoading, error, cartItemsCount, onOpenCart }) {
   return (
     <>
+      <Header cartItemsCount={cartItemsCount} onOpenCart={onOpenCart} />
       <Hero>
         <HeroContent>
           <Logo />
@@ -65,8 +76,8 @@ function HomePage({ restaurants, isLoading, error }) {
         </HeroContent>
       </Hero>
       <Main>
-        {isLoading && <FeedbackBlock>Carregando restaurantes da API do eFood...</FeedbackBlock>}
-        {!isLoading && error && <FeedbackBlock>{error}</FeedbackBlock>}
+        {isLoading && <Message>Carregando restaurantes da API do eFood...</Message>}
+        {!isLoading && error && <Message>{error}</Message>}
         {!isLoading && !error && (
           <Grid>
             {restaurants.map((restaurant) => (
